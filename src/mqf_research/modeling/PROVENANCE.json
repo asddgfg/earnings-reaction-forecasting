@@ -1,0 +1,120 @@
+{
+  "schema_version": 1,
+  "modernization_date": "2026-11-24",
+  "originals_edited": false,
+  "maintained_path_base": " + name + ",
+  "compatibility_policy": "Read-only frozen helpers resolve from MQF_RESEARCH_ROOT; legacy workflows reject -O/-OO so their assertions remain enabled.",
+  "files": [
+    {
+      "source": " + name + /outputs/nn_feature_validation_20261123_b032/FROZEN_INPUTS.json",
+      "sha256": "6767efa627dd326bab9944e302d5f6d05e03e4780134a4170b3e3f6a86a41f01",
+      "maintained": null,
+      "compatibility_only": true,
+      "kind": "frozen_input_receipt"
+    },
+    {
+      "source": " + name + /outputs/nn_tuning_20261123_b032/FROZEN_INPUTS.json",
+      "sha256": "497a8523cb660ae556e772403bc31eb5e4e22ee0d646d82fe6dbc9cd69203279",
+      "maintained": null,
+      "compatibility_only": true,
+      "kind": "frozen_input_receipt"
+    },
+    {
+      "source": " + name + /work/market_ridge_fixed_20261118/verify.py",
+      "sha256": "9f9da934e59de981aae280b2bdbd2c7195176eb985f2fafd56e7828124fbe691",
+      "maintained": null,
+      "compatibility_only": true
+    },
+    {
+      "source": " + name + /work/model_selection_20261118/statisticalinference.py",
+      "sha256": "ccc4d2f05b05b48015ebf0c2094e05eea8642ce7df7928c1ea6528d9719217b0",
+      "maintained": null,
+      "compatibility_only": true
+    },
+    {
+      "source": " + name + /work/nn_feature_validation_20261123_b032/calibration.py",
+      "sha256": "718ed3b24e2b8a69c448a2443fbc1c4464328c94881f1af56269e666294713b2",
+      "maintained": "src/mqf_research/modeling/feature_validation/calibration.py",
+      "compatibility_only": false
+    },
+    {
+      "source": " + name + /work/nn_feature_validation_20261123_b032/engine.py",
+      "sha256": "367b1aa183798eb9fe4317eb2b0a9e7be081eba6e6ce094f1d1c205934389955",
+      "maintained": "src/mqf_research/modeling/feature_validation/engine.py",
+      "compatibility_only": false
+    },
+    {
+      "source": " + name + /work/nn_feature_validation_20261123_b032/inputs.py",
+      "sha256": "b5358f89a09df9047934c639fec30556b561578b02f6035356fa5f61726c7fb6",
+      "maintained": "src/mqf_research/modeling/feature_validation/inputs.py",
+      "compatibility_only": false
+    },
+    {
+      "source": " + name + /work/nn_feature_validation_20261123_b032/report.py",
+      "sha256": "ab032ef414e7c9067a576647669ba450a9ce1b282072db93f4d877ca86aa74b7",
+      "maintained": "src/mqf_research/modeling/feature_validation/report.py",
+      "compatibility_only": false
+    },
+    {
+      "source": " + name + /work/nn_feature_validation_20261123_b032/study.py",
+      "sha256": "947107f73dbe674882655382c123ee4318fc05bdb942735fd73d29537aab0d94",
+      "maintained": "src/mqf_research/modeling/feature_validation/study.py",
+      "compatibility_only": false
+    },
+    {
+      "source": " + name + /work/nn_feature_validation_20261123_b032/verify.py",
+      "sha256": "8fcdd7264cfe39bde0a6e57e8f1f78febc61e3e94122512ff601f605c2100247",
+      "maintained": "src/mqf_research/modeling/feature_validation/verify.py",
+      "compatibility_only": false
+    },
+    {
+      "source": " + name + /work/nn_tuning_20261123_b032/engine.py",
+      "sha256": "a0d099ac2cae0a2c7ae1cbf1ab2f6aaa1fcf8775418f980e6da51a411cee2dc0",
+      "maintained": "src/mqf_research/modeling/tuning/engine.py",
+      "compatibility_only": false
+    },
+    {
+      "source": " + name + /work/nn_tuning_20261123_b032/inputs.py",
+      "sha256": "6c70ca2285c25c544f52561061dfb99fddda2772cd0183450a33a2858cc63b14",
+      "maintained": "src/mqf_research/modeling/tuning/inputs.py",
+      "compatibility_only": false
+    },
+    {
+      "source": " + name + /work/nn_tuning_20261123_b032/report.py",
+      "sha256": "4259b998c5cd7187d1a7a2e046922dd86503a25715152d945ae135a4d3178fa4",
+      "maintained": "src/mqf_research/modeling/tuning/report.py",
+      "compatibility_only": false
+    },
+    {
+      "source": " + name + /work/nn_tuning_20261123_b032/runtime_probe.py",
+      "sha256": "20737dfe59a684b5e9ae1df5597d0dcc2944b412831f3084c03da3f4de4dabe2",
+      "maintained": "src/mqf_research/modeling/tuning/runtime_probe.py",
+      "compatibility_only": false
+    },
+    {
+      "source": " + name + /work/nn_tuning_20261123_b032/study.py",
+      "sha256": "4d1e0888cfb7e2e446f726361492fced07413c7fba37507b788716599be7fecf",
+      "maintained": "src/mqf_research/modeling/tuning/study.py",
+      "compatibility_only": false
+    },
+    {
+      "source": " + name + /work/nn_tuning_20261123_b032/verify.py",
+      "sha256": "849faa897c31fe172df1f3cdef6e1d8ca15bb1942f6caed2fa2981839d8c5ed8",
+      "maintained": "src/mqf_research/modeling/tuning/verify.py",
+      "compatibility_only": false
+    },
+    {
+      "source": " + name + /work/small_sample_ai_20261118/inputs.py",
+      "sha256": "0ef0651f0fa06c503a0c454b7868d8587276d04ca35ecd15794cd5e3768ccc03",
+      "maintained": null,
+      "compatibility_only": true
+    },
+    {
+      "source": " + name + /work/tabpfn_fixed_20261119_b032/inputs.py",
+      "sha256": "b75e43be24c8d02205afb5900c6f09a6b48cdd105d87193500be403e4cb3a24b",
+      "maintained": null,
+      "compatibility_only": true
+    }
+  ],
+  "public_export_note": "Historical source fingerprints only. Logical roots are not local paths and original artifacts are not distributed. DISTRIBUTION_MANIFEST.json verifies public export bytes."
+}

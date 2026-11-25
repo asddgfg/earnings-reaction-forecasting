@@ -1,0 +1,141 @@
+"""Small numeric NN. Same original initialization, optimizer and seed policy."""
+import os
+os.environ.update(OMP_NUM_THREADS='1',MKL_NUM_THREADS='1',OPENBLAS_NUM_THREADS='1')
+from pathlib import Path
+import json,hashlib
+import numpy as np
+import pandas as pd
+import torch
+from torch import nn
+from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler,OneHotEncoder
+import joblib
+
+torch.set_num_threads(1)
+SEEDS=[42,43]
+
+def recipes():
+    result=[]
+    for width,head in [(8,16),(16,32),(32,64)]:
+        for dropout in [.2,.4]:
+            for decay in [.05,.2]:
+                result.append(dict(recipe_id=f'n{width}_h{head}_d{int(dropout*100)}_w{int(decay*100)}',
+                    numeric_width=width,head_width=head,dropout=dropout,weight_decay=decay,
+                    is_original=(width==16 and dropout==.2 and decay==.05)))
+    assert len(result)==12 and sum(r['is_original'] for r in result)==1
+    return result
+
+class NumericNet(nn.Module):
+    def __init__(self,numeric_dim,recipe):
+        super().__init__()
+        # These inert modules preserve the original numeric-only RNG initialization.
+        self.proj=nn.Linear(384,32);self.v=nn.Linear(32,16)
+        self.u=nn.Linear(32,16);self.a=nn.Linear(16,1,bias=False)
+        self.numeric=nn.Sequential(nn.Linear(numeric_dim,recipe['numeric_width']),nn.Tanh())
+        self.head=nn.Sequential(nn.Linear(recipe['numeric_width']+32,recipe['head_width']),
+            nn.ReLU(),nn.Dropout(recipe['dropout']),nn.Linear(recipe['head_width'],1))
+    def forward(self,x):
+        zeros=x.new_zeros((len(x),32))
+        return self.head(torch.cat([self.numeric(x),torch.tanh(zeros)],dim=1)).squeeze(1)
+
+def inner_split(history):
+    cut=pd.Period(history.quarter.max(),freq='Q')-1
+    while len(history[history.quarter.ge(str(cut))])<100:cut-=1
+    core=history[history.quarter.lt(str(cut))].copy()
+    valid=history[history.quarter.ge(str(cut))].copy()
+    assert len(core)>=200 and len(valid)>=100 and valid.quarter.nunique()>=2
+    assert core.reaction_session.max()<valid.reaction_session.min()
+    return core,valid
+
+def prepare(train,test,numeric,categorical):
+    imp=SimpleImputer(strategy='median',add_indicator=True,keep_empty_features=True)
+    scaler=StandardScaler()
+    a=np.clip(scaler.fit_transform(imp.fit_transform(train[numeric])),-10,10)
+    b=np.clip(scaler.transform(imp.transform(test[numeric])),-10,10)
+    hot=OneHotEncoder(handle_unknown='ignore',sparse_output=False,dtype=np.float32)
+    cat=hot.fit_transform(train[categorical].fillna('UNKNOWN').astype(str))
+    catt=hot.transform(test[categorical].fillna('UNKNOWN').astype(str))
+    x=np.column_stack([a,cat]).astype('float32');xt=np.column_stack([b,catt]).astype('float32')
+    mu=float(train.y.mean());sd=max(float(train.y.std(ddof=0)),1e-6)
+    y=((train.y.to_numpy()-mu)/sd).astype('float32')
+    prep=dict(imputer=imp,scaler=scaler,onehot=hot,numeric_features=numeric,
+        categorical_features=categorical,fit_event_ids=train.event_id.tolist())
+    return dict(X_train=x,X_test=xt,y_train_std=y,target_mean=mu,target_sd=sd,
+        train_ids=train.event_id.to_numpy(str),test_ids=test.event_id.to_numpy(str)),prep
+
+def initialize(dim,recipe):
+    states=[]
+    for seed in SEEDS:
+        torch.manual_seed(seed)
+        model=NumericNet(dim,recipe)
+        opt=torch.optim.AdamW(model.parameters(),lr=.002,weight_decay=recipe['weight_decay'])
+        states.append(dict(seed=seed,model=model,opt=opt,rng=np.random.default_rng(seed),
+                           torch_state=torch.get_rng_state()))
+    return states
+
+def epoch_step(state,x,y):
+    torch.set_rng_state(state['torch_state'])
+    model=state['model'];model.train();order=state['rng'].permutation(len(x));total=0.
+    for start in range(0,len(order),128):
+        ix=order[start:start+128];state['opt'].zero_grad(set_to_none=True)
+        loss=(model(x[ix])-y[ix]).square().mean()
+        assert torch.isfinite(loss)
+        loss.backward();nn.utils.clip_grad_norm_(model.parameters(),5.)
+        state['opt'].step();total+=float(loss.detach())*len(ix)
+    state['torch_state']=torch.get_rng_state()
+    return total/len(x)
+
+def predict(model,x,mu,sd):
+    model.eval();values=[]
+    with torch.inference_mode():
+        for start in range(0,len(x),128):
+            ix=np.arange(start,min(start+128,len(x)))
+            p=model(x[ix])
+            # Retain float32 inversion before conversion, exactly as original.
+            values.extend((p.numpy()*sd+mu).tolist())
+    return np.array(values)
+
+def select_epochs(matrix,y_valid,recipe):
+    x=torch.from_numpy(matrix['X_train']);xt=torch.from_numpy(matrix['X_test'])
+    y=torch.from_numpy(matrix['y_train_std'])
+    states=initialize(x.shape[1],recipe)
+    mu=float(matrix['target_mean']);sd=float(matrix['target_sd'])
+    curve=[];best=float('inf');best_epoch=0;stale=0
+    for epoch in range(1,41):
+        losses=[epoch_step(s,x,y) for s in states]
+        p=np.mean([predict(s['model'],xt,mu,sd) for s in states],axis=0)
+        mse=float(np.mean((p-y_valid)**2))
+        assert np.isfinite(mse)
+        if mse<best:best=mse;best_epoch=epoch;stale=0
+        else:stale+=1
+        curve.append(dict(epoch=epoch,training_standardized_loss=float(np.mean(losses)),
+            validation_mse=mse,validation_rmse_pp=float(np.sqrt(mse)*100)))
+        if epoch>=5 and stale>=5:break
+    assert best_epoch==min(curve,key=lambda r:r['validation_mse'])['epoch']
+    return dict(selected_epoch=best_epoch,stopped_epoch=epoch,hit_cap=epoch==40,curve=curve,
+        best_inner_mse=best,core_train_ids=matrix['train_ids'].tolist(),
+        inner_validation_ids=matrix['test_ids'].tolist(),patience=5,min_epochs=5,max_epochs=40)
+
+def refit(matrix,recipe,epochs,dest):
+    assert 1<=epochs<=40
+    x=torch.from_numpy(matrix['X_train']);xt=torch.from_numpy(matrix['X_test'])
+    y=torch.from_numpy(matrix['y_train_std'])
+    mu=float(matrix['target_mean']);sd=float(matrix['target_sd'])
+    states=initialize(x.shape[1],recipe)
+    for _ in range(epochs):
+        for s in states:epoch_step(s,x,y)
+    dest=Path(dest);dest.mkdir(parents=True,exist_ok=True);predictions=[]
+    for state in states:
+        p=predict(state['model'],xt,mu,sd);predictions.append(p)
+        torch.save(dict(state_dict=state['model'].state_dict(),numeric_dim=x.shape[1],
+            recipe=recipe,seed=state['seed'],epochs=epochs,target_mean=mu,target_sd=sd),
+            dest/f'seed{state["seed"]}.pt')
+    seedpred=np.array(predictions);np.save(dest/'SEED_PREDICTIONS.npy',seedpred)
+    return seedpred.mean(axis=0)
+
+def replay(path,matrix):
+    checkpoint=torch.load(path,map_location='cpu',weights_only=False)
+    model=NumericNet(checkpoint['numeric_dim'],checkpoint['recipe'])
+    model.load_state_dict(checkpoint['state_dict'])
+    return predict(model,torch.from_numpy(matrix['X_test']),
+                   checkpoint['target_mean'],checkpoint['target_sd'])

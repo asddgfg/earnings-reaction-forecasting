@@ -1,0 +1,61 @@
+{
+  "schema_version": 1,
+  "purpose": "Documented read-only adaptation; historical code and cache policies remain immutable.",
+  "files": [
+    {
+      "source": " + name + /codex_text_rerun_v3/core.py",
+      "sha256": "d0ca7ecf69b7e6ed84aabad6de6edcc4f4879a01fb3b1c63746a3ce66831dfba",
+      "maintained": "maintained/src/mqf_research/text/citations.py"
+    },
+    {
+      "source": " + name + /codex_text_rerun_v3/transport.py",
+      "sha256": "95eb27ea324f354a930da55e8896ce0e478b1d45242a3f2a5a4d27814f5c9a27",
+      "maintained": "maintained/src/mqf_research/text/packets.py"
+    },
+    {
+      "source": " + name + /company_context_run/context.py",
+      "sha256": "1c6c64a28a70de9386f96e9bebbe444b06aa0009e0f661c1459aa2774769c71c",
+      "maintained": "maintained/src/mqf_research/text/packets.py"
+    },
+    {
+      "source": " + name + /company_context_run/runtime.py",
+      "sha256": "ed4f871bfd02c19962f6e5fdb579c6399383edafa8fdf734a45d9569bf777cc5",
+      "maintained": "maintained/src/mqf_research/text/packets.py"
+    },
+    {
+      "source": " + name + /sol_model_trial/citation_validation.py",
+      "sha256": "c6f1c3cd40aeffcc8cbadacd263e0985fc9bb19a76678b3c6361eeaa7e444080",
+      "maintained": "maintained/src/mqf_research/text/citations.py"
+    },
+    {
+      "source": " + name + /outputs/source_repair_batches/batch_032/load_repaired_inputs.py",
+      "sha256": "eed636717f8c583ef98df931c5f700e16ef95aedf5263869fab2aac4a3aec36d",
+      "maintained": "maintained/src/mqf_research/text/release.py"
+    },
+    {
+      "source": " + name + /signal_mil_research/embed.py",
+      "sha256": "80b64a863ffa401480ca3a0db5bb2fbae960e375a7ba1d61423adcedd92f99af",
+      "maintained": "maintained/src/mqf_research/text/release.py"
+    },
+    {
+      "source": " + name + /signal_mil_research/models.py",
+      "sha256": "d139aa8f2c580add87ff993998c852f5ba9710ce58ee7317555ed60d0df53d1a",
+      "maintained": "maintained/src/mqf_research/text/release.py"
+    }
+  ],
+  "frozen_compatibility_entrypoint": " + name + /run_codex_text_rerun_v3.py",
+  "frozen_context_policy": " + name + /outputs/codex_text_rerun_v3_20261103/PROMPT_TRANSITION_CONTEXT.json",
+  "changes": [
+    "Explicit validation exceptions remain active under python -O.",
+    "Context enrichment returns independent copies and rejects ambiguous timezone-free timestamps.",
+    "Loader verifies all signal identities and supports relocating complete releases.",
+    "Validation is read-only and provides an explicit metadata-only scope."
+  ],
+  "not_performed": [
+    "LLM extraction",
+    "Embedding generation",
+    "Training",
+    "Updating protocol or cache hashes"
+  ],
+  "public_export_note": "Historical source fingerprints only. Logical roots are not local paths and original artifacts are not distributed. DISTRIBUTION_MANIFEST.json verifies public export bytes."
+}
